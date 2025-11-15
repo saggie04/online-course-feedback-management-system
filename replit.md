@@ -2,19 +2,28 @@
 
 ## Overview
 
-A frontend-only web application for managing student course feedback. The system provides a simple interface for students to submit, view, and manage feedback about courses. All data is stored locally in the browser using localStorage, with no backend server or database required. The application uses vanilla HTML, CSS, and JavaScript with a focus on simplicity and usability.
+A full-stack web application for managing student course feedback. The system provides a complete authentication flow and feedback management interface with Flask backend, PostgreSQL database, and vanilla JavaScript frontend. All data is securely stored in the database with user isolation, and passwords are hashed for security.
 
 ## Recent Changes
 
-**November 15, 2025**: Initial implementation completed
-- Created login page with email/password form and simulated authentication
+**November 15, 2025**: Backend and database integration completed
+- Migrated from localStorage-only frontend to full-stack architecture
+- Created Flask backend with REST API endpoints
+- Integrated PostgreSQL database for persistent storage
+- Implemented secure password hashing using werkzeug
+- Added user authentication with session management
+- Implemented user-specific feedback isolation (each user sees only their own feedback)
+- Added server-side input validation and error handling
+- Organized files into proper structure (app.py and static/ folder)
+- Updated all frontend JavaScript to communicate with backend API
+- Created comprehensive database schema with users and feedback tables
+- Fixed all LSP errors and security vulnerabilities
+
+**Earlier (November 15, 2025)**: Initial frontend implementation
+- Created login page with email/password form
 - Built main feedback page with course name, rating (1-5), and comments fields
 - Implemented feedback display with clean card-based layout
-- Added localStorage persistence for login state and feedback data
-- Created modern, minimalistic UI with purple gradient theme, soft shadows, and smooth animations
-- Included clear all feedback functionality with confirmation
-- Added success notifications for user actions
-- Implemented XSS protection through HTML escaping
+- Created modern, minimalistic UI with purple gradient theme
 - Made the design fully responsive for mobile and desktop
 
 ## User Preferences
@@ -23,86 +32,122 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
+### Full-Stack Architecture
 
-**Technology Stack**: Pure vanilla JavaScript, HTML5, and CSS3 with no frameworks or build tools.
+**Technology Stack**: Flask (Python backend), PostgreSQL database, and vanilla JavaScript frontend with no frameworks.
 
-**Rationale**: Chosen for maximum simplicity and portability. The application can run directly in any modern browser without compilation, bundling, or server setup. This makes it ideal for quick deployment and easy maintenance.
-
-**Multi-Page Application (MPA) Pattern**: The system uses separate HTML pages (`login.html` and `index.html`) with full page navigation rather than a single-page application approach.
+**Rationale**: Provides a real-world full-stack application with proper authentication, database persistence, and RESTful API design while maintaining simplicity on the frontend.
 
 **File Structure**:
-- `login.html`: Login page with email/password form
-- `index.html`: Main feedback submission and display page
-- `styles.css`: All styling with modern, minimalistic design
-- `app.js`: JavaScript logic for feedback management, localStorage, and UI interactions
-- `README.md`: Project documentation
+- `app.py`: Flask backend server with API endpoints and database logic
+- `static/login.html`: Login/registration page
+- `static/index.html`: Main feedback submission and display page
+- `static/styles.css`: All styling with modern, minimalistic design
+- `static/app.js`: Frontend JavaScript for API communication
+- `static/README.md`: Project documentation
 
-**Pros**: 
-- Zero setup complexity
-- No build process required
-- Easy to understand and modify
-- Works on any web server or local file system
+### Backend Architecture
 
-**Cons**:
-- Limited scalability
-- No built-in state management
-- Page reloads on navigation
+**Flask Framework**: Lightweight Python web framework for building the REST API.
 
-### Authentication Mechanism
+**API Endpoints**:
+- `POST /api/login` - Authenticate existing users or register new users with password hashing
+- `POST /api/logout` - Clear user session and log out
+- `GET /api/check-auth` - Verify if user is authenticated (for route protection)
+- `GET /api/feedback` - Retrieve all feedback for the logged-in user
+- `POST /api/feedback` - Submit new feedback entry
+- `DELETE /api/feedback/clear` - Delete all feedback for the logged-in user
 
-**Simulated Authentication**: Email/password collection without actual validation or encryption.
+**Session Management**: Uses Flask sessions with secure cookies to maintain authentication state across requests.
 
-**Rationale**: This is a demonstration/learning application that prioritizes simplicity over security. The authentication serves as a UI pattern rather than actual security.
-
-**Session Management**: Uses localStorage with `isLoggedIn` flag and `username` value to maintain session state across page reloads.
-
-**Route Protection**: JavaScript-based redirect on page load checks authentication status. If user is not logged in, they are redirected to login.html. If already logged in on login page, automatically redirected to index.html.
-
-**Cons**: 
-- No real security
-- Vulnerable to XSS attacks
-- Not suitable for production use with sensitive data
-
-### Data Storage Solution
-
-**LocalStorage-Based Persistence**: All feedback data and session state stored in browser's localStorage API.
-
-**Data Structure**: Feedback stored as JSON array with objects containing:
-- `courseName`: String
-- `rating`: Number (1-5)
-- `comments`: String  
-- `date`: Timestamp string (formatted with toLocaleString())
-
-**Rationale**: Eliminates need for backend infrastructure while providing persistent storage. Data survives page refreshes and browser restarts.
-
-**Storage Key**: `feedbacks` - Contains array of all feedback entries
+**CORS Support**: Flask-CORS enabled to support frontend-backend communication with credentials.
 
 **Pros**:
-- No server infrastructure required
-- Instant read/write operations
-- Zero latency
-- Works offline
+- Real database persistence
+- Secure authentication with password hashing
+- User data isolation
+- Scalable architecture
+- RESTful API design
 
-**Cons**:
-- Data limited to single browser/device
-- No cross-device synchronization
-- Vulnerable to data loss if browser data is cleared
-- Storage size limitations (~5-10MB)
-- No data backup or recovery mechanisms
-- Currently stores all users' feedback together (not user-specific)
+### Database Architecture
 
-### Security Considerations
+**PostgreSQL Database**: Using Replit's built-in PostgreSQL (Neon-backed) for data storage.
 
-**XSS Prevention**: Implements HTML escaping through `escapeHtml()` function that uses DOM-based encoding (`textContent` then `innerHTML`) to prevent injection attacks in user-generated content.
+**Schema Design**:
 
-**Applied to**: All user inputs displayed on the page (course names and comments)
+**Users Table**:
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-**Limitations**: 
-- No CSRF protection (not applicable for client-only app)
-- No encryption of stored data
-- Authentication is purely cosmetic
-- No input validation or sanitization on submission (recommended improvement: trim inputs and validate before saving)
+**Feedback Table**:
+```sql
+CREATE TABLE feedback (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    course_name VARCHAR(255) NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comments TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Rationale**: 
+- Normalized schema with foreign key relationships
+- User-specific feedback isolation via user_id foreign key
+- Database constraints for data integrity (rating must be 1-5)
+- Timestamps for auditing
+
+**Pros**:
+- Persistent storage across sessions and devices
+- Multi-user support with data isolation
+- Relational data model for complex queries
+- Backup and recovery capabilities
+- No storage size limitations like localStorage
+
+### Authentication & Security
+
+**Password Hashing**: Uses `werkzeug.security` (included with Flask) to:
+- Hash passwords with `generate_password_hash()` before storing
+- Verify passwords with `check_password_hash()` during login
+- Never store plain-text passwords
+
+**Auto-Registration**: If a user doesn't exist, the system automatically creates an account with the provided email and password.
+
+**Password Validation**: Existing users must provide the correct password to log in (returns 401 if incorrect).
+
+**Session-Based Auth**: Flask sessions store user_id and email after successful authentication.
+
+**Route Protection**: All API endpoints (except login and check-auth) require authentication and return 401 if not logged in.
+
+**Input Validation**: Server-side validation for:
+- Required fields (email, password, course name, rating, comments)
+- Rating range (1-5)
+- JSON payload validation to prevent None-subscript errors
+
+**XSS Prevention**: HTML escaping in frontend JavaScript for user-generated content.
+
+**User Isolation**: Database queries filter by user_id to ensure users only see their own data.
+
+### Frontend Architecture
+
+**Vanilla JavaScript with Fetch API**: All API communication uses modern fetch() with credentials.
+
+**Async/Await Pattern**: Clean asynchronous code for API calls with try/catch error handling.
+
+**No External Dependencies**: Pure HTML5, CSS3, and ES6+ JavaScript.
+
+**Features**:
+- Authentication check on page load with auto-redirect
+- Dynamic feedback rendering from database
+- Form validation before submission
+- Success/error notifications
+- Responsive design
 
 ### UI/UX Features
 
@@ -114,11 +159,12 @@ Preferred communication style: Simple, everyday language.
 - Modern button styles with transform effects
 
 **Interactive Elements**:
-- Success notifications with slide-in animations
+- Success/error notifications with slide-in animations
 - Hover effects on buttons and feedback cards
 - Confirmation dialog for destructive actions (clear all)
 - Empty state messaging when no feedback exists
 - Form reset after successful submission
+- Loading states during API calls
 
 **Responsive Design**: 
 - Mobile-first approach
@@ -128,37 +174,48 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 
-**None**: The application has zero external dependencies. It does not rely on:
-- Package managers (npm, yarn)
-- Frontend frameworks (React, Vue, Angular)
-- CSS frameworks (Bootstrap, Tailwind)
-- Third-party libraries or CDNs
-- Backend services or APIs
-- Databases
-- Authentication providers
+**Backend**:
+- `flask` - Web framework
+- `flask-cors` - CORS support
+- `psycopg2-binary` - PostgreSQL database adapter
+- `werkzeug` - Password hashing (included with Flask)
 
-All functionality is implemented using browser-native APIs:
-- `localStorage` for data persistence
-- `DOM API` for UI manipulation
-- `addEventListener` for event handling
-- Native `Date` object for timestamps
-- CSS3 for styling and animations
+**Frontend**: 
+- None - Pure vanilla JavaScript
 
 ## Development Server
 
-**Current Setup**: Python http.server on port 5000
+**Current Setup**: Flask development server on port 5000
 
-**Command**: `python -m http.server 5000`
+**Command**: `python app.py`
 
-**Access**: The application is served at the root URL and starts at login.html
+**Workflow**: Configured to run Flask backend with webview output
+
+**Database**: PostgreSQL database automatically initialized on server start with environment variables:
+- `DATABASE_URL` - Connection string
+- `SESSION_SECRET` - Flask session secret
+- `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` - Individual connection params
+
+## Deployment Considerations
+
+1. **Production WSGI Server**: Replace Flask dev server with Gunicorn or uWSGI
+2. **Environment Variables**: Ensure SESSION_SECRET is set to a strong random value
+3. **Database Migrations**: Current schema is managed via CREATE TABLE IF NOT EXISTS
+4. **HTTPS**: Required for secure session cookies in production
+5. **Password Requirements**: Consider adding password strength requirements
 
 ## Potential Improvements
 
-1. **Input Validation**: Add trimming and validation to prevent blank submissions
-2. **User-Specific Feedback**: Associate feedback with logged-in user email for multi-user isolation
-3. **Feedback Editing**: Allow users to edit or delete individual feedback entries
-4. **Sorting/Filtering**: Add options to sort by date, rating, or course name
-5. **Data Export**: Download feedback as JSON or CSV
-6. **Star Rating UI**: Replace dropdown with interactive star rating component
-7. **Search**: Add search functionality to find specific feedback
-8. **Pagination**: Limit displayed feedback and add pagination for large datasets
+1. **Password Requirements**: Add minimum length, complexity validation
+2. **Email Verification**: Send verification email on registration
+3. **Password Reset**: Add forgot password functionality
+4. **Feedback Editing**: Allow users to edit individual feedback entries
+5. **Feedback Deletion**: Delete individual feedback (not just clear all)
+6. **Sorting/Filtering**: Add UI controls to sort/filter feedback
+7. **Data Export**: Download feedback as JSON or CSV
+8. **Star Rating UI**: Replace dropdown with interactive star component
+9. **Search**: Add search functionality across feedback
+10. **Pagination**: Limit displayed feedback and paginate results
+11. **Profile Management**: Allow users to update email or password
+12. **Rate Limiting**: Prevent brute force login attempts
+13. **CSRF Protection**: Add CSRF tokens to forms
