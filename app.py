@@ -10,8 +10,15 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-prod
 CORS(app, supports_credentials=True)
 
 def get_db_connection():
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    return conn
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        raise ValueError(
+            'DATABASE_URL not set. Please:\n'
+            '1. Click the PostgreSQL icon in the Tools pane\n'
+            '2. Ensure the database is created\n'
+            '3. Restart the server'
+        )
+    return psycopg2.connect(database_url)
 
 def init_db():
     conn = get_db_connection()
