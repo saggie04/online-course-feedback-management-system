@@ -1,0 +1,242 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header h1 {
+    color: white;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-info span {
+    color: white;
+    font-size: 14px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    margin-bottom: 25px;
+}
+
+.card h1 {
+    color: #333;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 26px;
+}
+
+.card h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: #f9f9f9;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.btn-secondary:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.btn-danger:hover {
+    background: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#feedbackList {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.feedback-item {
+    background: #f9f9f9;
+    border-left: 4px solid #667eea;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.feedback-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-course {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.feedback-rating {
+    display: inline-block;
+    background: #667eea;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.feedback-comments {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.feedback-date {
+    color: #999;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header h1 {
+        font-size: 24px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .feedback-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
