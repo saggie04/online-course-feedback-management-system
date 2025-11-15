@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
 import os
 from datetime import datetime
@@ -20,6 +21,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -46,29 +48,52 @@ def index():
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-    email = data.get('email')
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
     
-    if not email:
-        return jsonify({'error': 'Email is required'}), 400
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'error': 'Email and password are required'}), 400
     
     conn = get_db_connection()
     cur = conn.cursor()
     
-    cur.execute('SELECT id, email FROM users WHERE email = %s', (email,))
+    cur.execute('SELECT id, email, password_hash FROM users WHERE email = %s', (email,))
     user = cur.fetchone()
     
     if not user:
-        cur.execute('INSERT INTO users (email) VALUES (%s) RETURNING id, email', (email,))
-        user = cur.fetchone()
+        password_hash = generate_password_hash(password)
+        cur.execute('INSERT INTO users (email, password_hash) VALUES (%s, %s) RETURNING id, email', (email, password_hash))
+        user_result = cur.fetchone()
         conn.commit()
-    
-    session['user_id'] = user[0]
-    session['email'] = user[1]
+        
+        if user_result:
+            session['user_id'] = user_result[0]
+            session['email'] = user_result[1]
+            
+            cur.close()
+            conn.close()
+            
+            return jsonify({'success': True, 'email': user_result[1]})
+    else:
+        if check_password_hash(user[2], password):
+            session['user_id'] = user[0]
+            session['email'] = user[1]
+            
+            cur.close()
+            conn.close()
+            
+            return jsonify({'success': True, 'email': user[1]})
+        else:
+            cur.close()
+            conn.close()
+            return jsonify({'error': 'Invalid email or password'}), 401
     
     cur.close()
     conn.close()
-    
-    return jsonify({'success': True, 'email': user[1]})
+    return jsonify({'error': 'Login failed'}), 500
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
@@ -119,6 +144,9 @@ def submit_feedback():
         return jsonify({'error': 'Not authenticated'}), 401
     
     data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+    
     course_name = data.get('courseName')
     rating = data.get('rating')
     comments = data.get('comments')
@@ -148,6 +176,9 @@ def submit_feedback():
     conn.commit()
     cur.close()
     conn.close()
+    
+    if not result:
+        return jsonify({'error': 'Failed to save feedback'}), 500
     
     return jsonify({
         'success': True,
